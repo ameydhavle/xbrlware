@@ -90,12 +90,12 @@ else
     # Basic information
     s.name = PKG_NAME
     s.version = PKG_VERSION
-    s.summary = 'A fast, lightweight framework to parse, extract information from XBRL Instance, Taxonomy and Linkbase documents.'
+    s.summary = 'A fast, lightweight framework to parse, extract information from XBRL documents.'
     description = s.summary +
-            "\nxbrlware understands structure and relationship among US-GAAP elements of XBRL documents."+
-            "\nxbrlware defines a set of APIs (in Ruby) for accessing XBRL data, meta & other"+
-            " related information on the consumption, quantitative and analytical applications development" +
-            " side of the financial supply chain. "
+            "\nxbrlware understands structure and relationship among elements of XBRL documents and" +
+              "\ndefines a set of APIs for accessing financial & business facts, meta & other related information"+
+              "\ndefined in XBRL documents."
+    
     s.description = description
 
     # Files and dependencies
