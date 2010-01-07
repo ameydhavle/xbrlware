@@ -1,0 +1,14 @@
+syntax: glob
+*.elc
+*.pyc
+*.class
+*.orig
+*~
+.~*
+*.iml
+.idea/*
+out/*
+bin/*
+junit/*
+doc/*
+pkg/*
