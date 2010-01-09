@@ -35,6 +35,7 @@ module Xbrlware
     cal_file=nil
     lab_file=nil
     def_file=nil
+    ref_file=nil
 
     files=Dir[dir_path+File::SEPARATOR+"*"]
 
@@ -50,12 +51,14 @@ module Xbrlware
           def_file = file
         when file.end_with?("lab.xml"):
           lab_file = file
+        when file.end_with?("ref.xml"):
+          ref_file = file
         when file.end_with?(".xml"):
           instance_file = file
       end
     end
 
-    {"ins" => instance_file, "tax" => taxonomy_file, "pre" => pre_file, "cal" => cal_file, "lab" => lab_file, "def" => def_file}
+    {"ins" => instance_file, "tax" => taxonomy_file, "pre" => pre_file, "cal" => cal_file, "lab" => lab_file, "def" => def_file, "ref" => ref_file}
   end
 
   # Initializes and returns an Instance.
