@@ -26,5 +26,7 @@ require 'rexml/streamlistener'
 require 'edgar/util'
 require 'edgar/edgar_data_downloader'
 
+require 'logger'
 
-
+$LOG = Logger.new($stdout)
+$LOG.level = Logger::INFO
