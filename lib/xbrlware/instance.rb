@@ -366,7 +366,7 @@ module Xbrlware
       @xbrl_content["footnoteLink"][0]["loc"].each do |loc|
         item_map[loc["xlink:label"]]=[] if item_map[loc["xlink:label"]].nil?
         item_map[loc["xlink:label"]] << loc["xlink:href"].split("#")[-1]
-      end
+      end unless @xbrl_content["footnoteLink"][0]["loc"].nil?
 
       footnote_map = {}
       @xbrl_content["footnoteLink"][0]["footnote"].each do |fn|
@@ -376,13 +376,15 @@ module Xbrlware
 
         footnote_map[label]={} if footnote_map[label].nil?
         footnote_map[label][lang]=content
-      end
+      end unless @xbrl_content["footnoteLink"][0]["footnote"].nil?
 
       label_to_footnote_map = {}
       @xbrl_content["footnoteLink"][0]["footnoteArc"].each do |fn_arc|
         label_to_footnote_map[fn_arc["xlink:from"]] = [] if label_to_footnote_map[fn_arc["xlink:from"]].nil?
         label_to_footnote_map[fn_arc["xlink:from"]] << fn_arc["xlink:to"]
-      end
+      end unless @xbrl_content["footnoteLink"][0]["footnoteArc"].nil?
+
+      return nil if label_to_footnote_map.size==0
 
       item_footnote_map ={}
       label_to_footnote_map.each do |item_label, fn_labels|
