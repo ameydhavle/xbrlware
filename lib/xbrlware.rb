@@ -29,6 +29,7 @@ require "stringio"
 require 'cgi'
 
 require 'xbrlware/float_patch'
+require 'xbrlware/cgi_patch'
 require 'xbrlware/meta_util'
 require 'xbrlware/hash_util'
 require 'xbrlware/date_util'
