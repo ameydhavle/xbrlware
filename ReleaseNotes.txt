@@ -1,0 +1,8 @@
+bitstat xbrlware community edition 1.0.3 release notes
+
+Bugs
+
+* [xbrlware-ce-dev-1] : footnoteLink element may exist without footnote, footnoteArc in instance document.
+* [xbrlware-ce-dev-2] : error raised when xbrl linkbase document has HTML element &#160; 
+* [xbrlware-ce-dev-3] : file_grep not working as intended when reference linkbase file is present.
+
