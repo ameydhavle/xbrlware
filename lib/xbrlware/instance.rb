@@ -252,6 +252,38 @@ module Xbrlware
       units
     end
 
+    private
+    def to_item_obj(item, name)
+      context, unit, precision, decimals, _footnotes=nil
+
+      context = context(item["contextRef"]) unless item["contextRef"].nil?
+      value = item["content"]
+
+      unit = unit(item["unitRef"]) unless item["unitRef"].nil?
+      precision = item["precision"] unless item["precision"].nil?
+      decimals = item["decimals"] unless item["decimals"].nil?
+
+      _footnotes = footnotes(item["id"]) unless item["id"].nil?
+      item=Item.new(name, context, value, unit, precision, decimals, _footnotes)
+      item.def=@taxonomy.definition(name)
+      return item
+    end
+
+    public
+    def item_all_map
+      all_items = @xbrl_content
+      return nil if all_items.nil?
+
+      items_hash={}
+
+      all_items.each do |name, item_content|
+        _name=name.upcase
+        next if _name=="CONTEXT" || _name=="UNIT"
+        items_hash[name.upcase] = item(name)   
+      end
+      items_hash
+    end
+
     # Takes name and optional context_ref and unit_ref
     #  Returns array of Item for given name, context_ref and unit_ref
     #  Returns empty array if item is not found
@@ -268,18 +300,7 @@ module Xbrlware
         next unless context_ref.nil? || context_ref == item["contextRef"]
         next unless unit_ref.nil? || unit_ref == item["unitRef"]
 
-        context = context(item["contextRef"])
-        value = item["content"]
-
-        unit, precision, decimals, _footnotes=nil
-
-        unit = unit(item["unitRef"]) unless item["unitRef"].nil?
-        precision = item["precision"] unless item["precision"].nil?
-        decimals = item["decimals"] unless item["decimals"].nil?
-
-        _footnotes = footnotes(item["id"]) unless item["id"].nil?
-        item=Item.new(name, context, value, unit, precision, decimals, _footnotes)
-        item.def=@taxonomy.definition(name)
+        item = to_item_obj(item, name)
         items << item
       end
       items
@@ -352,7 +373,7 @@ module Xbrlware
         file_name=File.basename(@file_name)
         symbol=file_name.split("-")[0]
         symbol.upcase!
-        
+
         @entity_details["symbol"]=symbol unless symbol.nil?
 
       end

@@ -32,7 +32,7 @@ TESTDIR = 'test'
 EXAMPLEDIR = 'example'
 
 # Configure some constants and built-in tasks
-CURRENT_VERSION = '1.0.2'
+CURRENT_VERSION = '1.0.4'
 PKG_VERSION = ENV['REL'] ? ENV['REL'] : CURRENT_VERSION
 
 COMMUNITY_EDITION = 'xbrlware-ce'
