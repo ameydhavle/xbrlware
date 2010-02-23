@@ -9,8 +9,11 @@ class TestContext < Test::Unit::TestCase
     XbrlTest::SchemaValidator.validate(xml_file, @@xsd_file)
     xbrl = Xbrlware::Instance.new(xml_file)
     p=xbrl.context("I2007_CommonStockMember").period
-    assert_equal("2008-02-02", p["start_date"])
-    assert_equal("2008-03-02", p["end_date"])
+    assert_equal("2008-02-02", p.value["start_date"].to_s)
+    assert_equal("2008-03-02", p.value["end_date"].to_s)
+    assert(p.is_duration?)
+    assert_equal(false, p.is_instant?)
+    assert_equal(false, p.is_forever?)
   end
 
   def test_472_period_instant
@@ -19,7 +22,10 @@ class TestContext < Test::Unit::TestCase
     xbrl = Xbrlware::Instance.new(xml_file)
     ctx=xbrl.context("I2007_CommonStockMember")
     p=ctx.period
-    assert_equal("2008-02-02", p)
+    assert_equal("2008-02-02", p.to_s)
+    assert p.is_instant?
+    assert_equal(false, p.is_duration?)
+    assert_equal(false, p.is_forever?)
   end
 
   def test_472_period_forever
@@ -27,7 +33,10 @@ class TestContext < Test::Unit::TestCase
     XbrlTest::SchemaValidator.validate(xml_file, @@xsd_file)
     xbrl = Xbrlware::Instance.new(xml_file)
     p=xbrl.context("I2007_CommonStockMember").period
-    assert_equal(Xbrlware::Context::PERIOD_FOREVER, p)
+    assert_equal(Xbrlware::Context::PERIOD_FOREVER, p.value)
+    assert p.is_forever?
+    assert_equal(false, p.is_instant?)
+    assert_equal(false, p.is_duration?)
   end
 
   def test_4731_entity_identifier

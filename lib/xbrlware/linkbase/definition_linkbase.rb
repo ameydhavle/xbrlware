@@ -151,7 +151,7 @@ module Xbrlware
         attr_reader :primary_items
 
         def initialize(title, role, href=nil, primary_items=nil)
-          super(title, role, href, primary_items)
+          super("Definition", title, role, href, primary_items)
           @primary_items=primary_items
         end
 
@@ -164,7 +164,7 @@ module Xbrlware
                 dimension.domains.each do |domain|
                   domains << domain.href.sub("_", ":")
                 end
-                dim_dom_map[dimension.href.sub("_", ":")]=domains
+                dim_dom_map[dimension.href.sub("_", ":")]=domains if domains.size > 0
               end
             end
           end unless @primary_items.nil?

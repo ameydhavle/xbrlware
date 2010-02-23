@@ -1,8 +1,25 @@
-bitstat xbrlware community edition 1.0.3 release notes
+                            bitstat (http://www.bitstat.com) xbrlware release notes
+                            =======================================================
 
-Bugs
+Release 1.1.0
+    Bugs
+    * [xbrlware-ce-dev-4] : entity_details method of instance.rb is specific to US & not applicable to other countries   
+    * [xbrlware-ce-dev-5] : When linkbase documents mentioned in taxonomy are not available, ignore them than raising error
+    * [xbrlware-ee] : In reports, should not format entity_details like CIK, Outstanding shares and other entity details as numbers
+                    : In reports, provide custom option to format item values
+                    : Make HTML reports social friendly ( to share in facebook, myspace etc)
+    Changes
+    * [xbrlware-ce-dev-6] : context.period changed to return Context::Period object. If you are accessing period of
+                            context as "context.period", change that to "context.period.value"
+    * [xbrlware-ce-dev-7] : New methods added to period, is_instant?, is_duration? and is_forever?
+    * [xbrlware-ce-dev-8] : Instant and duration period should return Date instead of String
+    Features
+    * [xbrlware-ce-dev-9] : has_scenario? added to context and has_segment? added to context.entity  
 
-* [xbrlware-ce-dev-1] : footnoteLink element may exist without footnote, footnoteArc in instance document.
-* [xbrlware-ce-dev-2] : error raised when xbrl linkbase document has HTML element &#160; 
-* [xbrlware-ce-dev-3] : file_grep not working as intended when reference linkbase file is present.
+Release 1.0.3
+    Bugs
+    * [xbrlware-ce-dev-1] : footnoteLink element may exist without footnote, footnoteArc in instance document.
+    * [xbrlware-ce-dev-2] : error raised when xbrl linkbase document has HTML element &#160;
+    * [xbrlware-ce-dev-3] : file_grep not working as intended when reference linkbase file is present.
+
 

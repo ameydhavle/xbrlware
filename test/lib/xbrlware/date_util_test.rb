@@ -12,8 +12,8 @@ class TestDateUtil < Test::Unit::TestCase
   end
 
   def test_months_between
-    start_dt=Date.parse("2009-09-15")
-    end_dt=Date.parse("2009-12-15")
+    start_dt=Date.parse("2009-10-01")
+    end_dt=Date.parse("2009-12-31")
 
     months=Xbrlware::DateUtil.months_between(start_dt, end_dt)
     assert_equal(3, months)
@@ -21,4 +21,12 @@ class TestDateUtil < Test::Unit::TestCase
     months=Xbrlware::DateUtil.months_between(end_dt, start_dt)
     assert_equal(3, months)
   end
+
+  def test_months_between_years
+    start_dt=Date.parse("2008-01-01")
+    end_dt=Date.parse("2009-12-31")
+
+    months=Xbrlware::DateUtil.months_between(start_dt, end_dt)
+    assert_equal(24, months)
+  end  
 end

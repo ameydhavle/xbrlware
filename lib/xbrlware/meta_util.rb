@@ -41,5 +41,10 @@ module Xbrlware
             alias :#{alias_name} :#{actual_name}
       }
     end
+
+    def self.eval_on_instance(o, method_block)
+      p "#{o.class}"
+      o.instance_eval method_block
+    end
   end
 end

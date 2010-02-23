@@ -95,9 +95,10 @@ module Xbrlware
 
       class Link
 
-        attr_reader :title, :role, :href, :arcs
+        attr_reader :link_type, :title, :role, :href, :arcs
 
-        def initialize(title, role, href, arcs=nil)
+        def initialize(link_type, title, role, href, arcs=nil)
+          @link_type=link_type
           @role = role
           @href = href
 

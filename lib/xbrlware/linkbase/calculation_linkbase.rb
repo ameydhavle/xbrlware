@@ -116,7 +116,7 @@ module Xbrlware
         attr_reader :contexts, :entity_details
 
         def initialize(entity_details, title, role, href=nil, arcs=nil, contexts=nil)
-          super(title, role, href, arcs)
+          super("Calculation", title, role, href, arcs)
           @contexts=contexts
           @entity_details=entity_details
         end

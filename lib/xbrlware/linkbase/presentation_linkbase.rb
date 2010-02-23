@@ -133,7 +133,7 @@ module Xbrlware
         attr_reader :contexts, :definition, :instance, :timelines, :dimensions, :entity_details
 
         def initialize(entity_details, title, role, href=nil, contexts=nil, arcs=nil, definition=nil, instance=nil, dimensions=[])
-          super(title, role, href, arcs)
+          super("Presentation", title, role, href, arcs)
           @entity_details=entity_details
           @contexts=contexts
           @definition=definition

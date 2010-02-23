@@ -24,6 +24,7 @@ require 'rake/gempackagetask'
 require 'rake/clean'
 require 'rake/testtask'
 require 'rake/rdoctask'
+require 'xbrlware/version'
 
 
 LIBDIR = 'lib'
@@ -32,8 +33,7 @@ TESTDIR = 'test'
 EXAMPLEDIR = 'example'
 
 # Configure some constants and built-in tasks
-CURRENT_VERSION = '1.0.4'
-PKG_VERSION = ENV['REL'] ? ENV['REL'] : CURRENT_VERSION
+PKG_VERSION = Xbrlware::VERSION
 
 COMMUNITY_EDITION = 'xbrlware-ce'
 PKG_NAME = ENV['EDT'] ? ENV['EDT'] : COMMUNITY_EDITION
@@ -90,12 +90,12 @@ else
     # Basic information
     s.name = PKG_NAME
     s.version = PKG_VERSION
-    s.summary = 'A fast, lightweight framework to parse, extract information from XBRL documents.'
+    s.summary = 'A fast, lightweight framework to parse, extract information from XBRL Instance, Taxonomy and Linkbase documents.'
     description = s.summary +
             "\nxbrlware understands structure and relationship among elements of XBRL documents and" +
               "\ndefines a set of APIs for accessing financial & business facts, meta & other related information"+
               "\ndefined in XBRL documents."
-    
+
     s.description = description
 
     # Files and dependencies

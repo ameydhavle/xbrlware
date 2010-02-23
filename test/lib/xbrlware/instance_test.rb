@@ -247,4 +247,23 @@ class TestXbrlInstance < Test::Unit::TestCase
     assert_equal(1, items.size)
   end
 
+  def test_item_all
+    items=@xbrl.item_all_map
+    assert_equal(6, items["PROFITLOSS"].size)
+    assert_equal(2, items["RECEIVABLESNETCURRENT"].size)
+    assert_equal(1, items["INCOMEBEFOREINCOMETAXES"].size)
+    assert_equal(1, items["INCOME-BEFORE-INCOMETAXES"].size)
+    assert_nil(items["NOT-EXIST"])
+  end
+
+  def test_entity_details
+    entity_details=@xbrl.entity_details
+    assert_equal("UNKNOWN", entity_details["name"])
+
+    @xbrl.entity_details={"name" => "EntityName"}
+    assert_equal("EntityName", entity_details["name"])
+    assert_equal("UNKNOWN", entity_details["ci_keys"])
+    
+  end
+
 end

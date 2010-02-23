@@ -58,6 +58,7 @@ module Xbrlware
       end
 
       @taxonomy=Xbrlware::Taxonomy.new(taxonomy_filepath, self)
+      @entity_details=Hash.new("UNKNOWN")
     end
 
     # Returns raw content of instance file in the form of Hash
@@ -190,9 +191,9 @@ module Xbrlware
     # Returns -1 if period is forever 
     def period(period_content)
       if period_content["startDate"] && period_content["endDate"]
-        return {"start_date" => period_content["startDate"][0]["content"], "end_date" => period_content["endDate"][0]["content"]}
+        return {"start_date" => Date.parse(period_content["startDate"][0]["content"]), "end_date" => Date.parse(period_content["endDate"][0]["content"])}
       elsif period_content["instant"]
-        return period_content["instant"][0]["content"]
+        return Date.parse(period_content["instant"][0]["content"])
       elsif period_content["forever"]
         return Context::PERIOD_FOREVER
       end
@@ -279,7 +280,7 @@ module Xbrlware
       all_items.each do |name, item_content|
         _name=name.upcase
         next if _name=="CONTEXT" || _name=="UNIT"
-        items_hash[name.upcase] = item(name)   
+        items_hash[name.upcase] = item(name)
       end
       items_hash
     end
@@ -348,34 +349,40 @@ module Xbrlware
       @item_footnote_map
     end
 
+    def entity_details=(value)
+      @entity_details.merge!(value) if value.is_a?(Hash)
+    end
 
     def entity_details
-      @entity_details={}
       if @entity_details.size==0
-        e_name=item("EntityRegistrantName")[0]
-        e_ci_key=item("EntityCentralIndexKey")[0]
-        e_doc_type=item("DocumentType")[0]
-        e_doc_end_type=item("DocumentPeriodEndDate")[0]
+        begin
+          # Specific to US filing 
+          e_name=item("EntityRegistrantName")[0]
+          e_ci_key=item("EntityCentralIndexKey")[0]
+          e_doc_type=item("DocumentType")[0]
+          e_doc_end_type=item("DocumentPeriodEndDate")[0]
 
-        fedate=item("CurrentFiscalYearEndDate")
-        e_fiscal_end_date=fedate[0] unless fedate.nil?
+          fedate=item("CurrentFiscalYearEndDate")
+          e_fiscal_end_date=fedate[0] unless fedate.nil?
 
-        shares_outstanding = item("EntityCommonStockSharesOutstanding")
-        e_common_shares_outstanding=shares_outstanding[0] unless shares_outstanding.nil?
+          shares_outstanding = item("EntityCommonStockSharesOutstanding")
+          e_common_shares_outstanding=shares_outstanding[0] unless shares_outstanding.nil?
 
-        @entity_details["name"]=e_name.value unless e_name.nil?
-        @entity_details["ci_key"]=e_ci_key.value unless e_ci_key.nil?
-        @entity_details["doc_type"]=e_doc_type.value unless e_doc_type.nil?
-        @entity_details["doc_end_date"]=e_doc_end_type.value unless e_doc_end_type.nil?
-        @entity_details["fiscal_end_date"]=e_fiscal_end_date.value unless e_fiscal_end_date.nil?
-        @entity_details["common_shares_outstanding"]=e_common_shares_outstanding.value unless e_common_shares_outstanding.nil?
+          @entity_details["name"]=e_name.value unless e_name.nil?
+          @entity_details["ci_key"]=e_ci_key.value unless e_ci_key.nil?
+          @entity_details["doc_type"]=e_doc_type.value unless e_doc_type.nil?
+          @entity_details["doc_end_date"]=e_doc_end_type.value unless e_doc_end_type.nil?
+          @entity_details["fiscal_end_date"]=e_fiscal_end_date.value unless e_fiscal_end_date.nil?
+          @entity_details["common_shares_outstanding"]=e_common_shares_outstanding.value unless e_common_shares_outstanding.nil?
 
-        file_name=File.basename(@file_name)
-        symbol=file_name.split("-")[0]
-        symbol.upcase!
+          file_name=File.basename(@file_name)
+          symbol=file_name.split("-")[0]
+          symbol.upcase!
 
-        @entity_details["symbol"]=symbol unless symbol.nil?
-
+          @entity_details["symbol"]=symbol unless symbol.nil?
+        rescue Exception => e
+          @entity_details
+        end
       end
       @entity_details
     end

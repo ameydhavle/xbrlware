@@ -61,7 +61,7 @@ module Xbrlware
       file_path=linkbase_href(Xbrlware::LBConstants::LABEL) if file_path.nil? && @lablb.nil?
       return @lablb if file_path.nil?
       $LOG.warn(" Label linkbase already initialized. Ignoring " + file_path) unless file_path.nil? || @lablb.nil?
-      @lablb = Xbrlware::Linkbase::LabelLinkbase.new(file_path) if @lablb.nil?
+      @lablb = Xbrlware::Linkbase::LabelLinkbase.new(file_path) if @lablb.nil? && File.exist?(file_path)  
       @lablb
     end
 
@@ -70,7 +70,7 @@ module Xbrlware
       file_path=linkbase_href(Xbrlware::LBConstants::DEFINITION) if file_path.nil? && @deflb.nil?
       return @deflb if file_path.nil?
       $LOG.warn(" Definition linkbase already initialized. Ignoring " + file_path) unless file_path.nil? || @deflb.nil?
-      @deflb = Xbrlware::Linkbase::DefinitionLinkbase.new(file_path, lablb()) if  @deflb.nil?
+      @deflb = Xbrlware::Linkbase::DefinitionLinkbase.new(file_path, lablb()) if @deflb.nil? && File.exist?(file_path)
       @deflb
     end
 
@@ -79,7 +79,7 @@ module Xbrlware
       file_path=linkbase_href(Xbrlware::LBConstants::PRESENTATION) if file_path.nil? && @prelb.nil?
       return @prelb if file_path.nil?
       $LOG.warn(" Presentation linkbase already initialized. Ignoring " + file_path) unless file_path.nil? || @prelb.nil?
-      @prelb = Xbrlware::Linkbase::PresentationLinkbase.new(file_path, @instance, deflb, lablb) if @prelb.nil?
+      @prelb = Xbrlware::Linkbase::PresentationLinkbase.new(file_path, @instance, deflb, lablb) if @prelb.nil? && File.exist?(file_path)
       @prelb
     end
 
@@ -88,7 +88,7 @@ module Xbrlware
       file_path=linkbase_href(Xbrlware::LBConstants::CALCULATION) if file_path.nil? && @callb.nil?
       return @callb if file_path.nil?
       $LOG.warn(" Calculation linkbase already initialized. Ignoring " + file_path) unless file_path.nil? || @callb.nil?
-      @callb = Xbrlware::Linkbase::CalculationLinkbase.new(file_path, @instance, lablb) if @callb.nil?
+      @callb = Xbrlware::Linkbase::CalculationLinkbase.new(file_path, @instance, lablb) if @callb.nil? && File.exist?(file_path)
       @callb
     end
 
@@ -103,12 +103,15 @@ module Xbrlware
 
     private
     def linkbase_href(linkbase)
-      linkbase_refs=@taxonomy_content["annotation"][0]["appinfo"][0]["linkbaseRef"]
-      linkbase_refs.each do |ref|
-        if ref["xlink:role"]==linkbase
-          return @taxonomy_file_basedir + ref["xlink:href"] if ref["xml:base"].nil?
-          return @taxonomy_file_basedir + ref["xml:base"] + ref["xlink:href"]
+      begin
+        linkbase_refs=@taxonomy_content["annotation"][0]["appinfo"][0]["linkbaseRef"]
+        linkbase_refs.each do |ref|
+          if ref["xlink:role"]==linkbase
+            return @taxonomy_file_basedir + ref["xlink:href"] if ref["xml:base"].nil?
+            return @taxonomy_file_basedir + ref["xml:base"] + ref["xlink:href"]
+          end
         end
+      rescue Exception => e
       end
       nil
     end
@@ -123,7 +126,7 @@ module Xbrlware
         eval("self.extend Taxonomies::#{taxonomy_module}")
       else
         $LOG.warn("No taxonomy found for name ["+ENV["TAXO_NAME"].to_s+"] and version ["+ENV["TAXO_VER"].to_s+"]")
-      end      
+      end
     end
 
     def method_missing(m, *args)
