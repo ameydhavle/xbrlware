@@ -21,7 +21,7 @@ end
 
 curr_asset, prev_asset=0, 0
 
-if Date.parse(assets[0].context.period) > Date.parse(assets[1].context.period)
+if assets[0].context.period.value > assets[1].context.period.value
   curr_asset=assets[0].value.to_f
   prev_asset=assets[1].value.to_f
 else

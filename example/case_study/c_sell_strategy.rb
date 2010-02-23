@@ -14,7 +14,7 @@ end
 
 curr_netincome, prev_netincome=0, 0
 
-if Date.parse(net_incomes[0].context.period["end_date"]) > Date.parse(net_incomes[1].context.period["end_date"])
+if net_incomes[0].context.period.value["end_date"] > net_incomes[1].context.period.value["end_date"]
   curr_netincome=net_incomes[0].value.to_f
   prev_netincome=net_incomes[1].value.to_f
 else
