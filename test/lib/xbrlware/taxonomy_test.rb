@@ -121,4 +121,32 @@ class TestXbrlTaxonomyForNewDefinition < Test::Unit::TestCase
 
   end
 
+  def test_linkbase_files_are_ignored
+    taxonomy_file=File.dirname(__FILE__)+"/resources/taxonomy_test_files/1/taxonomy.xsd"
+    taxonomy=Xbrlware::Taxonomy.new(taxonomy_file, nil)
+    taxonomy.ignore_lablb=true
+    taxonomy.ignore_prelb=true
+    taxonomy.ignore_deflb=true
+    taxonomy.ignore_callb=true
+
+    taxonomy.init_all_lb
+    assert_nil(taxonomy.lablb)
+    assert_nil(taxonomy.prelb)
+    assert_nil(taxonomy.deflb)
+    assert_nil(taxonomy.callb)
+
+    taxonomy_file=File.dirname(__FILE__)+"/resources/taxonomy_test_files/2/taxonomy.xsd"
+    taxonomy=Xbrlware::Taxonomy.new(taxonomy_file, nil)
+    taxonomy.ignore_lablb=true
+    taxonomy.ignore_prelb=true
+    taxonomy.ignore_deflb=true
+    taxonomy.ignore_callb=true
+    taxonomy.init_all_lb
+
+    assert_nil(taxonomy.lablb)
+    assert_nil(taxonomy.prelb)
+    assert_nil(taxonomy.deflb)
+    assert_nil(taxonomy.callb)
+  end  
+
 end

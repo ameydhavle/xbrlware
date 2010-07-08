@@ -45,8 +45,8 @@ module Edgar
         data_dir=data_dir+File::SEPARATOR+item["xbrlFiling"][0]["accessionNumber"][0]["content"]
         mkdir(data_dir)
         files.each do |file|
-          file_content=open(file["url"]).read
-          dump_to_file(data_dir+File::SEPARATOR+file["file"], file_content)
+          file_content=open(file["edgar:url"]).read
+          dump_to_file(data_dir+File::SEPARATOR+file["edgar:file"], file_content)
         end
       end
     end
@@ -60,9 +60,9 @@ module Edgar
         files=get_xbrl_files(item)
         files.each do |file|
           if file["type"]=="EX-101.INS" && (i_size==0 || file["size"].to_i < i_size)
-            i_size = file["size"].to_i
-            i_url = file["url"]
-            title = item["title"]
+            i_size = file["edgar:size"].to_i
+            i_url = file["edgar:url"]
+            title = item["edgar:title"]
           end
         end
       end
@@ -74,7 +74,7 @@ module Edgar
     # Gets url that end with xml and xsd 
     def get_xbrl_files(item)
       xbrl_files=item["xbrlFiling"][0]["xbrlFiles"][0]["xbrlFile"]
-      return xbrl_files.select {|e| e["url"].end_with?("xml") || e["url"].end_with?("xsd")}
+      return xbrl_files.select {|e| e["edgar:url"].end_with?("xml") || e["edgar:url"].end_with?("xsd")}
     end
 
   end

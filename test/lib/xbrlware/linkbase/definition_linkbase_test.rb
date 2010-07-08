@@ -16,13 +16,13 @@ class TestDefinitionLinkbase < Test::Unit::TestCase
     dimensions=definition.primary_items.to_a[0].hypercubes.to_a[0].dimensions.to_a
     assert_equal(1, dimensions[0].domains.size)
     domain_prods=dimensions[0].domains.to_a
-    assert_equal("company_AllRegions", domain_prods[0].item_id)
+    assert_equal("company_AllRegions_0", domain_prods[0].item_id)
     assert_equal(4, domain_prods[0].members.size)
     
     
     assert_equal(1, dimensions[1].domains.size)
     domain_regions=dimensions[1].domains.to_a
-    assert_equal("company_AllProducts", domain_regions[0].item_id)
+    assert_equal("company_AllProducts_0", domain_regions[0].item_id)
     assert_equal(4, domain_regions[0].members.size)
   end
   

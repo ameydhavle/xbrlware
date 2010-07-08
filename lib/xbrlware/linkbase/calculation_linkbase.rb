@@ -34,13 +34,51 @@ module Xbrlware
         super linkbase_path
         @instance=instance
         @label_linkbase=label_linkbase
+        @cal_content_optimized=nil
       end
 
       def calculation(role=nil)
         calculations=[]
-        calc_content=@linkbase_content["calculationLink"]
-        calc_content.each do |cal|
 
+        if @cal_content_optimized.nil?
+          calc_content=@linkbase_content["calculationLink"]
+          @cal_content_optimized = []
+          calc_content.each_with_index do |cal, index|
+            next if cal["loc"].nil? || cal["calculationArc"].nil?
+            cal["loc"].map! do |e|
+              e["xlink:label"]="#{e['xlink:label']}_#{index}"
+              e
+            end
+
+            cal["calculationArc"].map! do |e|
+              e["xlink:from"]="#{e['xlink:from']}_#{index}"
+              e["xlink:to"]="#{e['xlink:to']}_#{index}"
+              e
+            end
+            selected=@cal_content_optimized.select {|cal_existing| cal_existing["xlink:role"]==cal["xlink:role"]}[0]
+            if selected.nil?
+              @cal_content_optimized << cal
+            else
+              cal["loc"].each do |current|
+                matched_loc=nil
+                selected["loc"].each do |existing|
+                  if existing["xlink:href"]==current["xlink:href"]
+                    matched_loc=current
+                    cal["calculationArc"].each do |arc|
+                      arc["xlink:from"] = existing["xlink:label"] if current["xlink:label"]==arc["xlink:from"]
+                      arc["xlink:to"] = existing["xlink:label"] if current["xlink:label"]==arc["xlink:to"]
+                    end
+                    break
+                  end
+                end
+                selected["loc"] << current if matched_loc.nil?
+              end
+              selected["calculationArc"] += cal["calculationArc"]
+            end
+          end
+        end
+
+        @cal_content_optimized.each do |cal|
           next unless cal["xlink:role"]==role unless role.nil?
 
           if cal["calculationArc"].nil?
@@ -55,6 +93,13 @@ module Xbrlware
       end
 
       private
+      def fetch_label(label_name, pref_label)
+        pref_label="http://www.xbrl.org/2003/role/label" if pref_label.nil?
+        label_obj=@label_linkbase.label(label_name, pref_label)
+        label = label_obj.value unless label_obj.nil?
+        return label
+      end
+
       def arcs(calc)
         locators={}
         calc["loc"].each do |loc|
@@ -70,15 +115,14 @@ module Xbrlware
         contexts = Set.new()
 
         calc["calculationArc"].each do |arc|
-          to_label = nil
+          from_label, to_label=nil, nil
           unless @label_linkbase.nil?
-            to_label_obj=@label_linkbase.label(locators[arc["xlink:to"]], arc["preferredLabel"]) unless arc["preferredLabel"].nil?
-            to_label_obj=@label_linkbase.label(locators[arc["xlink:to"]], "http://www.xbrl.org/2003/role/label") if arc["preferredLabel"].nil?
-            to_label = to_label_obj.value unless to_label_obj.nil?
+            to_label = fetch_label(locators[arc["xlink:to"]], arc["preferredLabel"])
+            from_label = fetch_label(locators[arc["xlink:from"]], arc["preferredLabel"])
           end
 
           to = Calculation::CalculationArc.new(arc["xlink:to"], locators[arc["xlink:to"]], arc["xlink:arcrole"], arc["order"], arc["weight"], arc["priority"], arc["use"], to_label)
-          from = Calculation::CalculationArc.new(arc["xlink:from"], locators[arc["xlink:from"]])
+          from = Calculation::CalculationArc.new(arc["xlink:from"], locators[arc["xlink:from"]], role=nil, order=nil, weight=nil, priority=nil, use=nil, label=from_label)
 
           to_item_name = locators[arc["xlink:to"]].gsub(/.*_/, "")
           from_item_name = locators[arc["xlink:from"]].gsub(/.*_/, "")

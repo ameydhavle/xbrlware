@@ -23,12 +23,15 @@ module Xbrlware
   #  Taxonomy definition of a item can be retrieved using def or meta methods.
   # Look at {delaing with instance page on xbrlware wiki}[http://code.google.com/p/xbrlware/wiki/InstanceTaxonomy] for more details.
   class Item
-    attr_reader :name, :context,:unit,:precision,:decimals, :footnotes
-    attr_accessor :def
+    include NSAware
+
+    attr_reader :name, :context, :unit, :precision, :decimals, :footnotes
+    attr_accessor :ins, :def
 
     # Constructs item
     # value is normalized based on precision and decimals passed as per XBRL specification
-    def initialize(name, context, value, unit=nil,precision=nil,decimals=nil, footnotes=nil)
+    def initialize(instance, name, context, value, unit=nil, precision=nil, decimals=nil, footnotes=nil)
+      @ins=instance
       @name=name
       @context = context
       @precision=precision
@@ -39,10 +42,14 @@ module Xbrlware
     end
 
     def value
-      return yield(@value) if block_given?      
+      return yield(@value) if block_given?
       @value
     end
-    
+
+    def is_value_numeric?
+      @value.to_i.to_s == @value || @value.to_f.to_s == @value
+    end
+
     alias_method :meta, :def
 
     def balance
@@ -51,40 +58,40 @@ module Xbrlware
     end
 
     class ItemValue # :nodoc:
-      
+
       attr_reader  :item_value
-      
-      def initialize(item_value,precision=nil,decimals=nil)
+
+      def initialize(item_value, precision=nil, decimals=nil)
         @item_value=item_value
         @precision=precision
         @decimals=decimals
       end
 
       def value()
-        return precision() unless @precision.nil?  
+        return precision() unless @precision.nil?
         return decimals() unless @decimals.nil?
         return @item_value
       end
-      
+
       # returns BigDecimal float representation as String
       def precision()
         return @item_value if @precision=="INF"
-        
+
         precision_i=@precision.to_i
         new_value=BigDecimal(@item_value)
-        
+
         is_value_integer = new_value==@item_value.to_i
-        
-        
-        return to_precision_from_integer(@item_value.to_i, precision_i) if is_value_integer 
-        
+
+
+        return to_precision_from_integer(@item_value.to_i, precision_i) if is_value_integer
+
         index_of_dot = new_value.abs.to_s("F").index(".")
-        
+
         # When mod value is greater than 1 and float number 
         if new_value.abs > 1
           #Precision is less than number of digits before decimal
           return to_precision_from_integer(new_value.to_i, precision_i) if precision_i <= index_of_dot
-          
+
           #Precision is greater than number of digits before decimal
           return new_value.round(precision_i-index_of_dot).to_s("F")
         else
@@ -93,23 +100,24 @@ module Xbrlware
           return new_value.round(no_of_zeroes + precision_i).to_s("F")
         end
       end
-      
+
       # returns BigDecimal float representation as String
       def decimals
-        return BigDecimal(@item_value).round(@decimals.to_i).to_s("F") 
+        return @item_value if @decimals=="INF"
+        return BigDecimal(@item_value).round(@decimals.to_i).to_s("F")
       end
-      
-      private 
+
+      private
       def to_precision_from_integer(new_value, precision_i)
         factor=10 **(new_value.abs.to_s.length - precision_i)
         return to_big_decimal_float_str(((BigDecimal(new_value.to_s) / factor).to_i * factor).to_s)
       end
-      
+
       def to_big_decimal_float_str(value)
         return BigDecimal(value).to_s("F")
       end
-      
+
     end
-  end 
-  
+  end
+
 end

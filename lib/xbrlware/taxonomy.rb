@@ -22,6 +22,8 @@ module Xbrlware
   # Class to deal with taxonomy of instance file.
   class Taxonomy
 
+    attr_accessor :ignore_lablb, :ignore_deflb, :ignore_prelb, :ignore_callb 
+
     # Creates a Taxonomy.
     #
     # taxonomy_path:: Instance taxonomy source path.
@@ -58,6 +60,7 @@ module Xbrlware
 
     # initialize and returns label linkbase 
     def lablb(file_path=nil)
+      return nil if ignore_lablb
       file_path=linkbase_href(Xbrlware::LBConstants::LABEL) if file_path.nil? && @lablb.nil?
       return @lablb if file_path.nil?
       $LOG.warn(" Label linkbase already initialized. Ignoring " + file_path) unless file_path.nil? || @lablb.nil?
@@ -67,6 +70,7 @@ module Xbrlware
 
     # initialize and returns definition linkbase
     def deflb(file_path=nil)
+      return nil if ignore_deflb
       file_path=linkbase_href(Xbrlware::LBConstants::DEFINITION) if file_path.nil? && @deflb.nil?
       return @deflb if file_path.nil?
       $LOG.warn(" Definition linkbase already initialized. Ignoring " + file_path) unless file_path.nil? || @deflb.nil?
@@ -76,6 +80,7 @@ module Xbrlware
 
     # initialize and returns presentation linkbase
     def prelb(file_path=nil)
+      return nil if ignore_prelb
       file_path=linkbase_href(Xbrlware::LBConstants::PRESENTATION) if file_path.nil? && @prelb.nil?
       return @prelb if file_path.nil?
       $LOG.warn(" Presentation linkbase already initialized. Ignoring " + file_path) unless file_path.nil? || @prelb.nil?
@@ -85,6 +90,7 @@ module Xbrlware
 
     # initialize and returns calculation linkbase
     def callb(file_path=nil)
+      return nil if ignore_callb
       file_path=linkbase_href(Xbrlware::LBConstants::CALCULATION) if file_path.nil? && @callb.nil?
       return @callb if file_path.nil?
       $LOG.warn(" Calculation linkbase already initialized. Ignoring " + file_path) unless file_path.nil? || @callb.nil?
@@ -94,6 +100,7 @@ module Xbrlware
 
     # initialize all linkbases
     def init_all_lb(cal_file_path=nil, pre_file_path=nil, lab_file_path=nil, def_file_path=nil)
+      @lablb, @deflb, @prelb, @callb=nil
       lablb(lab_file_path)
       deflb(def_file_path)
       prelb(pre_file_path)

@@ -28,6 +28,7 @@ require 'set'
 require "stringio"
 require 'cgi'
 
+require 'xbrlware/version'
 require 'xbrlware/float_patch'
 require 'xbrlware/cgi_patch'
 require 'xbrlware/meta_util'
@@ -41,6 +42,7 @@ require 'xbrlware/util'
 require 'xbrlware/taxonomies/us_gaap_taxonomy_20090131'
 require 'xbrlware/taxonomy'
 
+require 'xbrlware/ns_aware'
 require 'xbrlware/context'
 require 'xbrlware/instance'
 require 'xbrlware/unit'

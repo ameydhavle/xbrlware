@@ -28,7 +28,7 @@ module Xbrlware
 
     # Creates an Instance.
     #
-    # instance_filepath:: XBRL Instance source. Tries to load and parse instance file from the path.
+    # instance_str:: XBRL Instance source. Tries to load and parse instance file from the instance_str. This can be XBRL instance file from the file system or XBRL content string.
     #
     # taxonomy_filepath::
     #   optional parameter, XBRL Taxonomy source. Tries to load and parse taxonomy file from path.
@@ -39,21 +39,28 @@ module Xbrlware
     # which will cause parsing error. Hence any exceptions during instance source parsing, will trigger re-parsing of
     # the entire instnace file with new lines replaced.
     # Look at {delaing with instance page on xbrlware wiki}[http://code.google.com/p/xbrlware/wiki/InstanceTaxonomy] for details.
-    def initialize(instance_filepath, taxonomy_filepath=nil)
+    def initialize(instance_str, taxonomy_filepath=nil)
       m=Benchmark.measure do
         begin
-          @file_name=instance_filepath
-          @xbrl_content = XmlParser.xml_in(instance_filepath, {'ForceContent' => true})
+          @file_name=instance_str unless instance_str =~ /<.*?>/m
+          @xbrl_content = XmlParser.xml_in(instance_str, {'ForceContent' => true})
         rescue Exception
-          $LOG.warn "File ["+instance_filepath+"] is not well formed. Starting reparsing after removing new lines."
-          @xbrl_content = XmlParser.xml_in(File.open(instance_filepath).read.gsub("\n", ""), {'ForceContent' => true})
+          new_content=nil
+          if instance_str =~ /<.*?>/m
+            $LOG.warn "Supplied XBRL content is not well formed. Starting reparsing after removing new lines."
+            new_content=instance_str.gsub("\n", "")
+          else
+            $LOG.warn "File ["+instance_str+"] is not well formed. Starting reparsing after removing new lines."
+            new_content=File.open(instance_str).read.gsub("\n", "")
+          end
+          @xbrl_content = XmlParser.xml_in(new_content, {'ForceContent' => true}) unless new_content.nil?
         end
       end
-      bm("Parsing [" + instance_filepath + "] took", m)
+      bm("Parsing [" + instance_str + "] took", m)
 
       # if taxonomy file is not supplied, get it from instance schema_ref
       if taxonomy_filepath.nil?
-        taxonomy_file_location=File.dirname(instance_filepath)+File::Separator+schema_ref
+        taxonomy_file_location=File.dirname(instance_str)+File::Separator+schema_ref
         taxonomy_filepath = taxonomy_file_location if File.exist?(taxonomy_file_location) && (not File.directory?(taxonomy_file_location))
       end
 
@@ -131,8 +138,8 @@ module Xbrlware
       all_contexts= context(nil, dimensions)
       all_contexts=[all_contexts] unless all_contexts.is_a?(Array)
       all_contexts.each do |ctx|
-        period_group[ctx.period.to_s] = [] if period_group[ctx.period.to_s].nil?
-        period_group[ctx.period.to_s] << ctx
+        period_group[ctx.period] = [] if period_group[ctx.period].nil?
+        period_group[ctx.period] << ctx
       end
       period_group
     end
@@ -150,6 +157,10 @@ module Xbrlware
           end
         end
       end
+    end
+
+    def inspect
+      self.to_s
     end
 
     private
@@ -183,7 +194,10 @@ module Xbrlware
       p = period(period_content)
 
       s = scenario(ctx_content)
-      return Context.new(id, e, p, s)
+      _context = Context.new(id, e, p, s)
+      _context.ns=ctx_content["nspace"]
+      _context.nsp=ctx_content["nspace_prefix"]
+      return _context
     end
 
     # Returns map  if period is duration. Map has key with name "start_date" and "end_date" 
@@ -237,8 +251,9 @@ module Xbrlware
 
         next unless unit_id.nil? || unit["id"].to_s == unit_id
 
+        _unit=nil
         unless unit["measure"].nil?
-          units << Unit.new(unit["id"], l.call(unit["measure"]))
+          _unit = Unit.new(unit["id"], l.call(unit["measure"]))
         else
           divide_content = unit["divide"][0]
 
@@ -246,8 +261,11 @@ module Xbrlware
           denominator = l.call(divide_content["unitDenominator"][0]["measure"])
 
           divide=Unit::Divide.new(numerator, denominator)
-          units << Unit.new(unit["id"], divide)
+          _unit = Unit.new(unit["id"], divide)
         end
+        _unit.ns=unit["nspace"]
+        _unit.nsp=unit["nspace_prefix"]
+        units << _unit
       end
       return units[0] unless unit_id.nil?
       units
@@ -265,22 +283,41 @@ module Xbrlware
       decimals = item["decimals"] unless item["decimals"].nil?
 
       _footnotes = footnotes(item["id"]) unless item["id"].nil?
-      item=Item.new(name, context, value, unit, precision, decimals, _footnotes)
-      item.def=@taxonomy.definition(name)
-      return item
+      _item=Item.new(self, name, context, value, unit, precision, decimals, _footnotes)
+      _item.ns=item["nspace"]
+      _item.nsp=item["nspace_prefix"]
+      _item.def=@taxonomy.definition(name)
+      return _item
     end
 
     public
-    def item_all_map
+    def item_all
+
+      return @item_all unless @item_all.nil?
+
       all_items = @xbrl_content
       return nil if all_items.nil?
 
-      items_hash={}
+      @item_all=[]
 
       all_items.each do |name, item_content|
-        _name=name.upcase
-        next if _name=="CONTEXT" || _name=="UNIT"
-        items_hash[name.upcase] = item(name)
+        next unless item_content.is_a?(Array)
+        next if item_content.size > 0 && item_content[0]["contextRef"].nil?
+        @item_all = @item_all + item(name)
+      end
+      @item_all
+    end
+
+    def item_all_map
+      items=item_all
+      return nil if items.nil?
+
+      items_hash={}
+
+      items.each do |item|
+        _name= item.name.upcase
+        items_hash[_name] = [] unless items_hash.include?(_name)
+        items_hash[_name] << item
       end
       items_hash
     end
@@ -292,7 +329,7 @@ module Xbrlware
 
       item_content = @xbrl_content[name]
 
-      return nil if item_content.nil?
+      return [] if item_content.nil?
 
       items=[]
 
@@ -375,11 +412,13 @@ module Xbrlware
           @entity_details["fiscal_end_date"]=e_fiscal_end_date.value unless e_fiscal_end_date.nil?
           @entity_details["common_shares_outstanding"]=e_common_shares_outstanding.value unless e_common_shares_outstanding.nil?
 
-          file_name=File.basename(@file_name)
-          symbol=file_name.split("-")[0]
-          symbol.upcase!
+          unless @file_name.nil?
+            file_name=File.basename(@file_name)
+            symbol=file_name.split("-")[0]
+            symbol.upcase!
 
-          @entity_details["symbol"]=symbol unless symbol.nil?
+            @entity_details["symbol"]=symbol unless symbol.nil?
+          end
         rescue Exception => e
           @entity_details
         end

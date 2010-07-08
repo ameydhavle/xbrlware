@@ -21,6 +21,8 @@ module Xbrlware
   # This class represents each context in the XBRL instance file.
   # Look at {delaing with instance page on xbrlware wiki}[http://code.google.com/p/xbrlware/wiki/InstanceTaxonomy] for more details.
   class Context
+    include NSAware
+    
     attr_reader :id, :entity, :period, :scenario
     PERIOD_FOREVER = -1
 

@@ -21,11 +21,11 @@ class TestCalculationLinkbase < Test::Unit::TestCase
       get_all_items(collector, arc)  
     end
 
-    expected=%w{loc_ComprehensiveIncomeNetOfTaxIncludingPortionAttributableToNoncontrollingInterest
-              loc_OtherComprehensiveIncomeDefinedBenefitPlansAdjustmentNetOfTaxPortionAttributableToParent
-              loc_OtherComprehensiveIncomeForeignCurrencyTransactionAndTranslationGainLossBeforeReclassificationAndTax
-              loc_ProfitLoss
-              loc_OtherComprehensiveIncomeDerivativesQualifyingAsHedgesNetOfTaxPeriodIncreaseDecrease}
+    expected=%w{loc_ComprehensiveIncomeNetOfTaxIncludingPortionAttributableToNoncontrollingInterest_19
+              loc_OtherComprehensiveIncomeDefinedBenefitPlansAdjustmentNetOfTaxPortionAttributableToParent_19
+              loc_OtherComprehensiveIncomeForeignCurrencyTransactionAndTranslationGainLossBeforeReclassificationAndTax_19
+              loc_ProfitLoss_19
+              loc_OtherComprehensiveIncomeDerivativesQualifyingAsHedgesNetOfTaxPeriodIncreaseDecrease_19}
     assert_equal(expected.sort, collector.to_a.sort)
   end
 

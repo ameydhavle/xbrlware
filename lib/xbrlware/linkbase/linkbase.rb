@@ -40,7 +40,7 @@ module Xbrlware
         #Populate role map
         role_map()
       end
-      
+
       private
       def role_map
         @role_map={}
@@ -51,9 +51,9 @@ module Xbrlware
           else
             @role_map[role_ref["roleURI"]]=href
           end
-        end unless @linkbase_content["roleRef"].nil?        
+        end unless @linkbase_content["roleRef"].nil?
       end
-      
+
       public
       def self.wireup_relationship(map, parent, child) # :nodoc:
 
@@ -114,7 +114,7 @@ module Xbrlware
         private
         def print_arc_hierarchy(verbose_flag="q", arcs=@arcs, indent=0)
           arcs.each do |arc|
-            str=" " * indent + arc.item_id
+            str=" " * indent + arc.item_name + "("+(arc.label if arc.respond_to?(:label)).to_s+")"
             if verbose_flag=="v"
               str +=" label [" +(arc.label if arc.respond_to?(:label)).to_s+"], role ["+arc.role.to_s+"]"
             end
@@ -133,20 +133,30 @@ module Xbrlware
 
 
         class Arc
-          attr_reader :item_id, :role, :label, :href, :order, :priority
+          attr_reader :item_id, :item_name, :role, :label, :href, :order, :priority
           attr_accessor :items, :children, :parent
 
           def initialize(item_id, href, role=nil, order=nil, priority=nil, label=nil)
             @item_id=item_id
+            @item_name = @item_id[0, (@item_id.rindex("_")==nil ? @item_id.size: @item_id.rindex("_"))]            
             @href=href
             @role=role
             @order=order.to_i
             @priority=priority.to_i
             if label.nil?
-              dash_index=item_id.index("_")
-              dash_index=dash_index.nil? ? 0 :(dash_index+1)
-              label=item_id[dash_index, item_id.length]
-            end            
+              if href.nil?
+                dash_index=item_id.index("_")
+                dash_index=dash_index.nil? ? 0 :(dash_index+1)
+                label=item_id[dash_index, item_id.length]
+              else
+                label=href[href.index("#")+1, href.length] unless href.index("#").nil?
+                label=href if href.index("#").nil?
+                unless label.index("_").nil?
+                  dash_index=label.index("_")
+                  label=label[dash_index+1, label.length]
+                end
+              end
+            end
             @label=label
             @children=Set.new()
           end

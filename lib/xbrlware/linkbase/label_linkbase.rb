@@ -67,6 +67,7 @@ module Xbrlware
 
         label_links=@linkbase_content["labelLink"]
         label_links.each do |label_content|
+          next if label_content["loc"].nil? || label_content["labelArc"].nil?
           loc_map=locator_map(label_content["loc"])
           arc_map=linkarc_map(label_content["labelArc"])
 

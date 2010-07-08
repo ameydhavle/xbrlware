@@ -11,12 +11,12 @@ fye=ins.entity_details["fiscal_end_date"]
 
 data={}
 [2009, 2008].each do |year|
-     end_date=Date.parse(fye.gsub(/--/, "#{year}-"))
-     items=ins.item_ctx_filter("CashAndCashEquivalentsAtCarryingValue") do |ctx| 
-	day_diff=(ctx.period.value-end_date).to_i
-	ctx.period.is_instant? && (day_diff==0 || day_diff==1)
-    end
-    data[year]=items[0]
+  end_date=Date.parse(fye.gsub(/--/, "#{year}-"))
+  items=ins.item_ctx_filter("CashAndCashEquivalentsAtCarryingValue") do |ctx|
+    day_diff=(ctx.period.value-end_date).to_i
+    ctx.period.is_instant? && (day_diff==0 || day_diff==1)
+  end
+  data[year]=items[0]
 end
 
 cash_2008=data[2008].value

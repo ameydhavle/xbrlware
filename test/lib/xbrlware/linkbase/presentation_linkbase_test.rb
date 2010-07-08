@@ -29,5 +29,4 @@ class TestPresentationLinkbase < Test::Unit::TestCase
     presentation=@pre_linkbase.presentation("not-exist")
     assert_nil(presentation)
   end
-
 end

@@ -54,10 +54,9 @@ class TestContext < Test::Unit::TestCase
     xbrl = Xbrlware::Instance.new(xml_file)
     ctx=xbrl.context("I2007_CommonStockMember")
     entity =ctx.entity
-    explicitmember0 = {"dimension" => "us-gaap:StatementEquityComponentsAxis", "content"=> "us-gaap:CommonStockMember"}
-    explicitmember1 = {"dimension" => "us-gaap:StatementEquityComponentsAxis", "content"=> "us-gaap:PreferredStockMember"}
-    expected = {"explicitMember" => [explicitmember0, explicitmember1] }
-    assert_equal(expected, entity.segment)
+    assert_equal(2, entity.segment["explicitMember"].size)
+    assert_equal("http://www.xbrl.org/2003/instance", entity.segment["nspace"])
+    assert_equal("xbrli", entity.segment["nspace_prefix"])
   end
 
   def test_4732_entity_segment_not_present
@@ -75,10 +74,9 @@ class TestContext < Test::Unit::TestCase
     XbrlTest::SchemaValidator.validate(xml_file, @@xsd_file)
     xbrl = Xbrlware::Instance.new(xml_file)
     scenario =xbrl.context("I2007_CommonStockMember").scenario
-    explicitmember0 = {"dimension" => "us-gaap:StatementEquityComponentsAxis", "content"=> "us-gaap:CommonStockMember"}
-    explicitmember1 = {"dimension" => "us-gaap:StatementEquityComponentsAxis", "content"=> "us-gaap:CommonStockMember another instance"}
-    expected = {"explicitMember" => [explicitmember0, explicitmember1] }
-    assert_equal(expected, scenario)
+    assert_equal(2, scenario["explicitMember"].size)
+    assert_equal("http://www.xbrl.org/2003/instance", scenario["nspace"])
+    assert_equal("xbrli", scenario["nspace_prefix"])    
   end
 
   def test_474_scenario_not_present
@@ -135,4 +133,14 @@ class TestContext < Test::Unit::TestCase
     ctx=xbrl.context("not-exist")
     assert_nil(ctx)
   end
+
+  def test_context_namespace_and_prefix
+    xml_file=File.dirname(__FILE__)+"/resources/47/472_period_forever.xml"
+    XbrlTest::SchemaValidator.validate(xml_file, @@xsd_file)
+    xbrl = Xbrlware::Instance.new(xml_file)
+    c=xbrl.context("I2007_CommonStockMember")
+    assert_equal("http://www.xbrl.org/2003/instance", c.ns)
+    assert_equal("xbrli", c.nsp)
+  end
+
 end

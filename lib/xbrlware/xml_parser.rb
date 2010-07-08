@@ -59,6 +59,26 @@ module Xbrlware
       return (not rv.nil?)
     end
 
+    # Converts the attributes array of a document node into a Hash.
+    # Adds two attributes (nspace and nspace_prefix) to all elements.
+    # if any attribute exist with above name, it will be overridden
+    #
+    # node::
+    #   Document node to extract attributes from.
+    def get_attributes(node)
+      attributes = {}
+      if @options['attrprefix']
+        node.attributes.each { |n, v| attributes["@" + n] = v }
+        attributes["@nspace"]=node.namespace
+        attributes["@nspace_prefix"]=node.prefix
+      else
+        node.attributes.each { |n, v| attributes[n] = v }
+        attributes["nspace"]=node.namespace
+        attributes["nspace_prefix"]=node.prefix
+      end
+      attributes
+    end
+
     public
     # Actually converts an XML document element into a data structure.
     #

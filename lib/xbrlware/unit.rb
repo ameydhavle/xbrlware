@@ -21,6 +21,7 @@ module Xbrlware
   # This class represents each unit in the XBRL instance file.
   # Look at {delaing with instance page on xbrlware wiki}[http://code.google.com/p/xbrlware/wiki/InstanceTaxonomy] for more details.
   class Unit
+    include NSAware
 
     attr_reader :id, :measure
 

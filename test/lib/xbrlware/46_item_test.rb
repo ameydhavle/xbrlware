@@ -105,6 +105,10 @@ class TestItem < Test::Unit::TestCase
   end
 
   def test_465_decimals
+
+    value=Xbrlware::Item::ItemValue.new("2.65", nil, "INF")
+    assert_equal("2.65", value.decimals)
+
     value=Xbrlware::Item::ItemValue.new("2002000", nil, "-4")
     assert_equal("2000000.0", value.decimals)
 
@@ -248,6 +252,32 @@ class TestItem < Test::Unit::TestCase
     items = xbrl.item("CommitmentsAndContingencies2009")
     assert_equal(1, items.size)
     assert_nil(items[0].value)
+  end
+
+  def test_item_namespace_and_namespace_prefix
+    xml_file=File.dirname(__FILE__)+"/resources/46/46_item_value.xml"
+    XbrlTest::SchemaValidator.validate(xml_file, @@xsd_file)
+    xbrl = Xbrlware::Instance.new(xml_file)
+    items = xbrl.item("SalesRevenueGoodsNet", "D2008Q4", "AUD")
+    assert_equal("http://xbrl.us/us-gaap/2009-01-31", items[0].ns)
+    assert_equal("us-gaap", items[0].nsp)
+  end
+
+  def test_is_value_numeric
+    item = Xbrlware::Item.new(nil, nil, nil, "12345")
+    assert item.is_value_numeric?
+
+    item = Xbrlware::Item.new(nil, nil, nil, "12345.6789")
+    assert item.is_value_numeric?
+
+    item = Xbrlware::Item.new(nil, nil, nil, "-12345")
+    assert item.is_value_numeric?
+
+    item = Xbrlware::Item.new(nil, nil, nil, "1SS")
+    assert_equal(false, item.is_value_numeric?)
+
+    item = Xbrlware::Item.new(nil, nil, nil, "xyz")
+    assert_equal(false, item.is_value_numeric?)  
   end
 
 end

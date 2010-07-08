@@ -42,4 +42,14 @@ class TestUnit < Test::Unit::TestCase
     assert_equal("xbrli:shares", unit.measure.denominator[0])
     assert_equal("xbrli:pure", unit.measure.denominator[1])
   end
+
+  def test_unit_namespace_and_prefix
+    xml_file=File.dirname(__FILE__)+"/resources/48/482_unit_measure.xml"
+    XbrlTest::SchemaValidator.validate(xml_file, @@xsd_file)
+    xbrl = Xbrlware::Instance.new(xml_file)
+    unit = xbrl.unit("USD_multipy_by_shares")
+    assert_equal("http://www.xbrl.org/2003/instance", unit.ns)
+    assert_equal("xbrli", unit.nsp)
+  end
+  
 end

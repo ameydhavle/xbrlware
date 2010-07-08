@@ -36,13 +36,53 @@ module Xbrlware
       def initialize(linkbase_path, label_linkbase=nil)
         super linkbase_path
         @label_linkbase=label_linkbase
+        @def_content_optimized=nil
       end
 
       def definition(role=nil)
 
         definitions=[]
-        def_content=@linkbase_content["definitionLink"]
-        def_content.each do |def_|
+
+        if @def_content_optimized.nil?
+          def_content=@linkbase_content["definitionLink"]
+
+          @def_content_optimized = []
+          def_content.each_with_index do |_def, index|
+            next if _def["loc"].nil? || _def["definitionArc"].nil?
+            _def["loc"].map! do |e|
+              e["xlink:label"]="#{e['xlink:label']}_#{index}"
+              e
+            end
+
+            _def["definitionArc"].map! do |e|
+              e["xlink:from"]="#{e['xlink:from']}_#{index}"
+              e["xlink:to"]="#{e['xlink:to']}_#{index}"
+              e
+            end
+            selected=@def_content_optimized.select {|def_existing| def_existing["xlink:role"]==_def["xlink:role"]}[0]
+            if selected.nil?
+              @def_content_optimized << _def
+            else
+              _def["loc"].each do |current|
+                matched_loc=nil
+                selected["loc"].each do |existing|
+                  if existing["xlink:href"]==current["xlink:href"]
+                    matched_loc=current
+                    _def["definitionArc"].each do |arc|
+                      arc["xlink:from"] = existing["xlink:label"] if current["xlink:label"]==arc["xlink:from"]
+                      arc["xlink:to"] = existing["xlink:label"] if current["xlink:label"]==arc["xlink:to"]
+                    end
+                    break
+                  end
+                end
+                selected["loc"] << current if matched_loc.nil?
+              end
+              selected["definitionArc"] += _def["definitionArc"]
+            end
+          end
+        end
+
+        @def_content_optimized.each do |def_|
 
           next unless def_["xlink:role"]==role unless role.nil?
 

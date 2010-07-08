@@ -39,14 +39,52 @@ module Xbrlware
         @instance=instance
         @def_linkbase=def_linkbase
         @label_linkbase=label_linkbase
+        @pre_content_optimized=nil
       end
 
       def presentation(role=nil)
         presentations=[]
 
-        pre_content=@linkbase_content["presentationLink"]
-        pre_content.each do |pre|
+        if @pre_content_optimized.nil?
+          pre_content=@linkbase_content["presentationLink"]
 
+          @pre_content_optimized = []
+          pre_content.each_with_index do |pre, index|
+            next if pre["loc"].nil? || pre["presentationArc"].nil?
+            pre["loc"].map! do |e|
+              e["xlink:label"]="#{e['xlink:label']}_#{index}"
+              e
+            end
+
+            pre["presentationArc"].map! do |e|
+              e["xlink:from"]="#{e['xlink:from']}_#{index}"
+              e["xlink:to"]="#{e['xlink:to']}_#{index}"
+              e
+            end
+            selected=@pre_content_optimized.select {|pre_existing| pre_existing["xlink:role"]==pre["xlink:role"]}[0]
+            if selected.nil?
+              @pre_content_optimized << pre
+            else
+              pre["loc"].each do |current|
+                matched_loc=nil
+                selected["loc"].each do |existing|
+                  if existing["xlink:href"]==current["xlink:href"]
+                    matched_loc=current
+                    pre["presentationArc"].each do |arc|
+                      arc["xlink:from"] = existing["xlink:label"] if current["xlink:label"]==arc["xlink:from"]
+                      arc["xlink:to"] = existing["xlink:label"] if current["xlink:label"]==arc["xlink:to"]
+                    end
+                    break
+                  end
+                end
+                selected["loc"] << current if matched_loc.nil?
+              end
+              selected["presentationArc"] += pre["presentationArc"]
+            end
+          end
+        end
+
+        @pre_content_optimized.each do |pre|
           next unless pre["xlink:role"]==role unless role.nil?
 
           if pre["presentationArc"].nil?
@@ -67,6 +105,13 @@ module Xbrlware
       end
 
       private
+      def fetch_label(label_name, pref_label)
+        pref_label="http://www.xbrl.org/2003/role/label" if pref_label.nil?
+        label_obj=@label_linkbase.label(label_name, pref_label)
+        label = label_obj.value unless label_obj.nil?
+        return label
+      end
+
       def arcs(pre, dimensions=[])
         locators={}
         pre["loc"].each do |loc|
@@ -83,15 +128,14 @@ module Xbrlware
         contexts = Set.new()
 
         pre["presentationArc"].each do |arc|
-          to_label = nil
+          from_label, to_label = nil, nil
           unless @label_linkbase.nil?
-            to_label_obj=@label_linkbase.label(locators[arc["xlink:to"]], arc["preferredLabel"]) unless arc["preferredLabel"].nil?
-            to_label_obj=@label_linkbase.label(locators[arc["xlink:to"]], "http://www.xbrl.org/2003/role/label") if arc["preferredLabel"].nil?
-            to_label = to_label_obj.value unless to_label_obj.nil?
+            to_label = fetch_label(locators[arc["xlink:to"]], arc["preferredLabel"])
+            from_label = fetch_label(locators[arc["xlink:from"]], arc["preferredLabel"])
           end
 
           to = Presentation::PresentationArc.new(arc["xlink:to"], locators[arc["xlink:to"]], arc["xlink:arcrole"], arc["order"], arc["priority"], arc["use"], to_label)
-          from = Presentation::PresentationArc.new(arc["xlink:from"], locators[arc["xlink:from"]])
+          from = Presentation::PresentationArc.new(arc["xlink:from"], locators[arc["xlink:from"]], role=nil, order=nil, priority=nil, use=nil, label=from_label)
 
           to_item_name = locators[arc["xlink:to"]].gsub(/.*_/, "")
           from_item_name = locators[arc["xlink:from"]].gsub(/.*_/, "")
@@ -130,7 +174,7 @@ module Xbrlware
       public
       class Presentation < Linkbase::Link
 
-        attr_reader :contexts, :definition, :instance, :timelines, :dimensions, :entity_details
+        attr_reader :contexts, :definition, :instance, :dimensions, :entity_details
 
         def initialize(entity_details, title, role, href=nil, contexts=nil, arcs=nil, definition=nil, instance=nil, dimensions=[])
           super("Presentation", title, role, href, arcs)
@@ -139,7 +183,6 @@ module Xbrlware
           @definition=definition
           @instance=instance
           @dimensions=dimensions
-          @timelines=[]
         end
 
         def has_dimensions?

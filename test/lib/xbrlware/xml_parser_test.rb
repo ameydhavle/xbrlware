@@ -1,5 +1,86 @@
 require File.dirname(__FILE__) + '/../../test_helper.rb'
 class TestXmlParser < Test::Unit::TestCase
+
+  def test_namespace_and_nsprefix_are_partof_attributes
+    xml_content= %{
+<?xml version="1.0" encoding="US-ASCII"?>
+<xbrli:xbrl xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:dei="http://xbrl.us/dei/2009-01-31"
+            xmlns:iso4217="http://www.xbrl.org/2003/iso4217" xmlns:kr="http://www.kroger.com/20090815"
+            xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:us-gaap="http://xbrl.us/us-gaap/2009-01-31"
+            xmlns:xbrldi="http://xbrl.org/2006/xbrldi" xmlns:xlink="http://www.w3.org/1999/xlink"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <link:schemaRef xlink:href="kr-20090815.xsd" xlink:type="simple"/>
+    <xbrli:context id="I2007_CommonStockMember">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.sec.gov/CIK">0000056873</xbrli:identifier>
+            <xbrli:segment>
+                <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">us-gaap:CommonStockMember
+                </xbrldi:explicitMember>
+            </xbrli:segment>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:instant>2008-02-02</xbrli:instant>
+        </xbrli:period>
+    </xbrli:context>
+    <xbrli:context id="I2007_AdditionalPaidInCapitalMember">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.sec.gov/CIK">0000056873</xbrli:identifier>
+            <xbrli:segment>
+                <xbrldi:explicitMember dimension="us-gaap:StatementEquityComponentsAxis">
+                    us-gaap:AdditionalPaidInCapitalMember
+                </xbrldi:explicitMember>
+            </xbrli:segment>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:instant>2008-02-02</xbrli:instant>
+        </xbrli:period>
+    </xbrli:context>
+    <xbrli:context id="D2009Q2YTD">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.sec.gov/CIK">0000056873</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:startDate>2009-02-01</xbrli:startDate>
+            <xbrli:endDate>2009-08-15</xbrli:endDate>
+        </xbrli:period>
+    </xbrli:context>
+    <xbrli:unit id="USD">
+        <xbrli:measure>iso4217:USD</xbrli:measure>
+    </xbrli:unit>
+    <xbrli:unit id="shares">
+        <xbrli:measure>xbrli:shares</xbrli:measure>
+    </xbrli:unit>
+    <xbrli:unit id="USDPerShare">
+        <xbrli:divide>
+            <xbrli:unitNumerator>
+                <xbrli:measure>iso4217:USD</xbrli:measure>
+            </xbrli:unitNumerator>
+            <xbrli:unitDenominator>
+                <xbrli:measure>xbrli:shares</xbrli:measure>
+            </xbrli:unitDenominator>
+        </xbrli:divide>
+    </xbrli:unit>
+    <dei:EntityRegistrantName contextRef="D2009Q2YTD">THE KROGER CO.</dei:EntityRegistrantName>
+    <dei:EntityCentralIndexKey contextRef="D2009Q2YTD">0000056873</dei:EntityCentralIndexKey>
+    <us-gaap:StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest contextRef="I2007_CommonStockMember"
+                                                                                    decimals="-6" unitRef="USD">
+        947000000
+    </us-gaap:StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest>
+    <us-gaap:StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest
+            contextRef="I2007_AdditionalPaidInCapitalMember" decimals="-6" unitRef="USD">3031000000
+    </us-gaap:StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest>
+
+    <us-gaap:SharesIssued contextRef="I2007_CommonStockMember" decimals="-6" unitRef="shares">947000000
+    </us-gaap:SharesIssued>
+</xbrli:xbrl>    
+    }
+
+    _hash=Xbrlware::XmlParser.xml_in(xml_content, {'ForceContent' => true})
+    assert("http://xbrl.us/us-gaap/2009-01-31", _hash["SharesIssued"][0]["nspace"]);
+    assert("us-gaap", _hash["SharesIssued"][0]["nspace_prefix"]);
+
+  end
+
   def test_xmslparser_is_faster_than_xmlsimple
     xml_content= %{
   <?xml version="1.0" encoding="us-ascii"?>

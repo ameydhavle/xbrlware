@@ -9,7 +9,7 @@ class TestRSSFeedDownloader < Test::Unit::TestCase
             public :get_xbrl_files
     end
     list_files = downloader.get_xbrl_files(item)
-    assert_equal("http://www.sec.gov/Archives/edgar/data/81033/000093041309005485/peg-20090930.xml",list_files[0]["url"])
+    assert_equal("http://www.sec.gov/Archives/edgar/data/72971/000095012310046578/wfc-20100331.xml",list_files[0]["edgar:url"])
   end
 end
 
