@@ -163,7 +163,8 @@ module Xbrlware
         item_map={}
         items.each do |item|
           if dimensions.size>0
-            item_map[item.context]=item if item.context.has_explicit_dimensions?(dimensions) && (not item.value.nil?)
+            dims=item.context.dimensions
+            item_map[item.context]=item if (dimensions-dims).size != dimensions.size && (not item.value.nil?)
           else
             item_map[item.context]=item unless item.context.has_explicit_dimensions? || item.value.nil?
           end

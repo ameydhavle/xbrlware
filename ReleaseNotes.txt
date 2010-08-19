@@ -1,5 +1,12 @@
                             bitstat (http://www.bitstat.com) xbrlware release notes
                             =======================================================
+Release 1.1.2
+    Changes
+    * [xbrlware-ce-dev-17]  :   Added support for IFRS taxonomy.
+
+    Bugs
+    * [xbrlware-ce-dev-18]  :   Too much of verbose in irb while dealing with linkbases.
+    * [xbrlware-ce-dev-19]  :   Error thrown when there is no <element> items in taxonomy file. 
 Release 1.1.1
     Bugs
     * [xbrlware-ce-dev-9]  :    item_all method added to Xbrlware::Instnace

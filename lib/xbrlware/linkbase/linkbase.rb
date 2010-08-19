@@ -55,6 +55,11 @@ module Xbrlware
       end
 
       public
+
+      def inspect
+        self.to_s
+      end
+
       def self.wireup_relationship(map, parent, child) # :nodoc:
 
         if child.is_a?(Array)
@@ -125,12 +130,15 @@ module Xbrlware
         end
 
         public
-        def inspect(verbose_flag="q")
+        def inspect
+          self.to_s
+        end
+
+        def print(verbose_flag="q")
           puts " title ["+title+"] role ["+role+"]"
           print_arc_hierarchy(verbose_flag)
           return self.to_s
         end
-
 
         class Arc
           attr_reader :item_id, :item_name, :role, :label, :href, :order, :priority
@@ -138,7 +146,7 @@ module Xbrlware
 
           def initialize(item_id, href, role=nil, order=nil, priority=nil, label=nil)
             @item_id=item_id
-            @item_name = @item_id[0, (@item_id.rindex("_")==nil ? @item_id.size: @item_id.rindex("_"))]            
+            @item_name = @item_id[0, (@item_id.rindex("_")==nil ? @item_id.size: @item_id.rindex("_"))]
             @href=href
             @role=role
             @order=order.to_i
@@ -171,6 +179,10 @@ module Xbrlware
 
           def hash
             @item_id.hash
+          end
+
+          def inspect
+            self.to_s
           end
         end
       end

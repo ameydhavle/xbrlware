@@ -147,6 +147,12 @@ class TestXbrlTaxonomyForNewDefinition < Test::Unit::TestCase
     assert_nil(taxonomy.prelb)
     assert_nil(taxonomy.deflb)
     assert_nil(taxonomy.callb)
-  end  
+  end
+
+  def test_taxonomy_when_no_element_tags_present
+    taxonomy_file=File.dirname(__FILE__)+"/resources/taxonomy_test_files/4/entry-point.xsd"
+    taxonomy=Xbrlware::Taxonomy.new(taxonomy_file, nil)
+    assert_not_nil(taxonomy)
+  end
 
 end

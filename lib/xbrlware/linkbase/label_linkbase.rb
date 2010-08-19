@@ -36,13 +36,16 @@ module Xbrlware
         return @label_map[item_name][label_role][language] unless @label_map[item_name].nil? || @label_map[item_name][label_role].nil? if language.is_a?(String)
         language.each do |lang|
           lab = @label_map[item_name][label_role][lang] unless @label_map[item_name].nil? || @label_map[item_name][label_role].nil?
-          return lab unless lab.nil? 
+          return lab unless lab.nil?
         end if language.is_a?(Array)
         return nil
       end
 
+      def inspect
+        self.to_s
+      end
 
-      def inspect(verbose_flag="q")
+      def print(verbose_flag="q")
         str = StringIO.new
         @label_map.each do |key, value|
           str << key

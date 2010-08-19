@@ -40,6 +40,11 @@ require 'xbrlware/constants'
 require 'xbrlware/util'
 
 require 'xbrlware/taxonomies/us_gaap_taxonomy_20090131'
+
+module Xbrlware; module Taxonomies
+autoload :IFRS20090401, 'xbrlware/taxonomies/ifrs_taxonomy_20090401'
+end; end;
+
 require 'xbrlware/taxonomy'
 
 require 'xbrlware/ns_aware'

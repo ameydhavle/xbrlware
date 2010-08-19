@@ -48,7 +48,7 @@ module Xbrlware
       @taxonomy_def_instance=TaxonomyDefintion.new
       @taxonomy_content["element"].each do |element|
         MetaUtil::introduce_instance_var(@taxonomy_def_instance, element["name"].gsub(/[^a-zA-Z0-9_]/, "_"), element)
-      end unless @taxonomy_content.nil?
+      end unless @taxonomy_content.nil? || @taxonomy_content["element"].nil?
 
       @lablb, @deflb, @prelb, @callb=nil
     end

@@ -18,3 +18,7 @@ Get started Guide
 ==================
 http://code.google.com/p/xbrlware/wiki/GetStarted
 
+Release notes
+===============
+ReleaseNotes.txt
+
