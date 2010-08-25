@@ -36,8 +36,8 @@ class TestXbrlTaxonomy < Test::Unit::TestCase
     taxonomy.init_all_lb(_cal, _pre, _lab, _def)
 
     assert_not_nil(taxonomy.lablb)
-    assert_not_nil(taxonomy.prelb)
     assert_not_nil(taxonomy.deflb)
+    assert_not_nil(taxonomy.prelb)
     assert_not_nil(taxonomy.callb)
   end
 

@@ -14,7 +14,7 @@ class TestPresentationLinkbase < Test::Unit::TestCase
     pre_file=File.dirname(__FILE__)+"/resources/pre.xml"    
     instance_file=File.dirname(__FILE__)+"/resources/instance.xml"
     instance = Xbrlware::Instance.new(instance_file)
-    @pre_linkbase = Xbrlware::Linkbase::PresentationLinkbase.new(pre_file, instance, def_linkbase, label_linkbase)
+    @pre_linkbase = Xbrlware::Linkbase::PresentationLinkbase.new(pre_file, instance, def_linkbase.definition, label_linkbase)
   end
   
   def test_presentation

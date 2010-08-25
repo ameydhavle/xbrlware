@@ -22,7 +22,8 @@ module Xbrlware
   # Class to deal with taxonomy of instance file.
   class Taxonomy
 
-    attr_accessor :ignore_lablb, :ignore_deflb, :ignore_prelb, :ignore_callb 
+    attr_accessor :ignore_lablb, :ignore_deflb, :ignore_prelb, :ignore_callb
+    attr_reader :taxonomy_content
 
     # Creates a Taxonomy.
     #
@@ -50,7 +51,8 @@ module Xbrlware
         MetaUtil::introduce_instance_var(@taxonomy_def_instance, element["name"].gsub(/[^a-zA-Z0-9_]/, "_"), element)
       end unless @taxonomy_content.nil? || @taxonomy_content["element"].nil?
 
-      @lablb, @deflb, @prelb, @callb=nil
+      @lablb=@deflb=@prelb=@callb=nil
+      @ignore_lablb=@ignore_deflb=@ignore_prelb=@ignore_callb=false
     end
 
     # gets taxonomy definition 
@@ -60,52 +62,130 @@ module Xbrlware
 
     # initialize and returns label linkbase 
     def lablb(file_path=nil)
-      return nil if ignore_lablb
+      return nil if @ignore_lablb
       file_path=linkbase_href(Xbrlware::LBConstants::LABEL) if file_path.nil? && @lablb.nil?
+      $LOG.debug("Label linkbase path #{file_path}")
       return @lablb if file_path.nil?
-      $LOG.warn(" Label linkbase already initialized. Ignoring " + file_path) unless file_path.nil? || @lablb.nil?
-      @lablb = Xbrlware::Linkbase::LabelLinkbase.new(file_path) if @lablb.nil? && File.exist?(file_path)  
+      if File.exist?(file_path)
+        @lablb = Xbrlware::Linkbase::LabelLinkbase.new(file_path)
+      else
+        $LOG.warn(" Label linkbase file not exist " + file_path)
+        @lablb = nil
+      end
       @lablb
     end
 
     # initialize and returns definition linkbase
     def deflb(file_path=nil)
-      return nil if ignore_deflb
+      return nil if @ignore_deflb
       file_path=linkbase_href(Xbrlware::LBConstants::DEFINITION) if file_path.nil? && @deflb.nil?
+      $LOG.debug("Definition linkbase path #{file_path}")
       return @deflb if file_path.nil?
-      $LOG.warn(" Definition linkbase already initialized. Ignoring " + file_path) unless file_path.nil? || @deflb.nil?
-      @deflb = Xbrlware::Linkbase::DefinitionLinkbase.new(file_path, lablb()) if @deflb.nil? && File.exist?(file_path)
+
+      if File.exist?(file_path)
+        @deflb = Xbrlware::Linkbase::DefinitionLinkbase.new(file_path, lablb())
+      else
+        $LOG.warn(" Definition linkbase file not exist " + file_path)
+        @deflb = nil
+      end
       @deflb
     end
 
     # initialize and returns presentation linkbase
-    def prelb(file_path=nil)
-      return nil if ignore_prelb
+    def prelb(file_path=nil, definitions=lb_definitions())
+      return nil if @ignore_prelb
       file_path=linkbase_href(Xbrlware::LBConstants::PRESENTATION) if file_path.nil? && @prelb.nil?
+      $LOG.debug("Presentation linkbase path #{file_path}")
       return @prelb if file_path.nil?
-      $LOG.warn(" Presentation linkbase already initialized. Ignoring " + file_path) unless file_path.nil? || @prelb.nil?
-      @prelb = Xbrlware::Linkbase::PresentationLinkbase.new(file_path, @instance, deflb, lablb) if @prelb.nil? && File.exist?(file_path)
+
+      if File.exist?(file_path)
+        @prelb = Xbrlware::Linkbase::PresentationLinkbase.new(file_path, @instance, definitions, lablb)
+      else
+        $LOG.warn(" Presentation linkbase file not exist " + file_path)
+        @prelb = nil
+      end
       @prelb
     end
 
     # initialize and returns calculation linkbase
     def callb(file_path=nil)
-      return nil if ignore_callb
+      return nil if @ignore_callb
       file_path=linkbase_href(Xbrlware::LBConstants::CALCULATION) if file_path.nil? && @callb.nil?
+      $LOG.debug("Calculation linkbase path #{file_path}")
       return @callb if file_path.nil?
-      $LOG.warn(" Calculation linkbase already initialized. Ignoring " + file_path) unless file_path.nil? || @callb.nil?
-      @callb = Xbrlware::Linkbase::CalculationLinkbase.new(file_path, @instance, lablb) if @callb.nil? && File.exist?(file_path)
+      if File.exist?(file_path)
+        @callb = Xbrlware::Linkbase::CalculationLinkbase.new(file_path, @instance, lablb)
+      else
+        $LOG.warn(" Calculation linkbase file not exist " + file_path)
+        @callb = nil
+      end
       @callb
     end
 
     # initialize all linkbases
     def init_all_lb(cal_file_path=nil, pre_file_path=nil, lab_file_path=nil, def_file_path=nil)
-      @lablb, @deflb, @prelb, @callb=nil
+      @lablb=@deflb=@prelb=@callb=nil
       lablb(lab_file_path)
       deflb(def_file_path)
-      prelb(pre_file_path)
+      prelb(pre_file_path, @deflb.definition) unless @deflb.nil? 
+      prelb(pre_file_path, []) if @deflb.nil?
       callb(cal_file_path)
       return
+    end
+
+    # Linkebase file paths
+    #
+    # linkbase_constant:: Xbrlware::LBConstants ::CALCULATION
+    #                     Xbrlware::LBConstants ::DEFINITION
+    #                     Xbrlware::LBConstants ::PRESENTATION
+    #                     Xbrlware::LBConstants ::LABEL
+    #                     Xbrlware::LBConstants ::REFERENCE
+    def lb_paths(linkbase_constant)
+      paths=[]
+      begin
+        linkbase_refs=@taxonomy_content["annotation"][0]["appinfo"][0]["linkbaseRef"]
+        linkbase_refs.each do |ref|
+          if ref["xlink:role"]==linkbase_constant
+            paths << "#{@taxonomy_file_basedir}#{ref["xml:base"]}#{ref["xlink:href"]}"
+          end
+        end
+      rescue Exception => e
+      end
+      paths
+    end
+
+    # initialize and returns all calculations
+    def calculations
+      cals=[]
+      cal_paths=lb_paths(Xbrlware::LBConstants::CALCULATION)
+      cal_paths.each do |path|
+        _callb = callb(path)
+        cals += _callb.calculation unless _callb.nil?
+      end
+      cals
+    end
+
+    # initialize and returns all linkbase definitions
+    def lb_definitions
+      des=[]
+      def_paths=lb_paths(Xbrlware::LBConstants::DEFINITION)
+      def_paths.each do |path|
+        _deflb = deflb(path)
+        des += _deflb.definition unless _deflb.nil?
+      end
+      des
+    end
+
+    # initialize and returns all presentations
+    def presentations
+      pres=[]
+      defs=lb_definitions
+      pre_paths=lb_paths(Xbrlware::LBConstants::PRESENTATION)
+      pre_paths.each do |path|
+        _prelb = prelb(path, defs)
+        pres += _prelb.presentation unless _prelb.nil?
+      end
+      pres
     end
 
     private
@@ -122,7 +202,6 @@ module Xbrlware
       end
       nil
     end
-
   end
 
   class TaxonomyDefintion

@@ -1,5 +1,8 @@
                             bitstat (http://www.bitstat.com) xbrlware release notes
                             =======================================================
+Release 1.1.3
+    * [xbrlware-ce-dev-20]  :   Support for multiple linkbase documents for presentations, calculations and definitions.  
+                                
 Release 1.1.2
     Changes
     * [xbrlware-ce-dev-17]  :   Added support for IFRS taxonomy.

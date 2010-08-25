@@ -34,10 +34,10 @@ module Xbrlware
       #
       # label_linkbase::
       #   optional parameter, LabelLinkbase object      
-      def initialize(linkbase_path, instance, def_linkbase, label_linkbase=nil)
+      def initialize(linkbase_path, instance, definitions, label_linkbase=nil)
         super linkbase_path
         @instance=instance
-        @def_linkbase=def_linkbase
+        @definitions=definitions
         @label_linkbase=label_linkbase
         @pre_content_optimized=nil
       end
@@ -91,7 +91,7 @@ module Xbrlware
             presentations << Presentation.new(@instance.entity_details, pre["xlink:title"], pre["xlink:role"], @role_map[pre["xlink:role"]])
           else
             definition=nil
-            definition=@def_linkbase.definition(pre["xlink:role"]) unless @def_linkbase.nil?
+            definition=@definitions.select{|_def|_def.role == pre["xlink:role"]}[0] unless @definitions.nil?
 
             dimensions=[]
             dimensions = definition.dimension_domain_map.keys unless definition.nil?
